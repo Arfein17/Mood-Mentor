@@ -1,0 +1,19 @@
+- [x] 1. Install `@google/genai` dependency
+- [x] 2. Database Models
+    - [x] Create `AdminSuggestion` model
+    - [x] Sync the DB and restart the backend server
+- [x] 3. Backend API
+    - [x] Update `server/services/ai.js` to use Gemini for real check-in analysis (no more hardcoded 55%)
+    - [x] Add `POST /api/chat` for the AI buddy
+    - [x] Add `GET /api/admin/suggestions` and `POST /api/admin/suggestions` for broadcast messaging
+- [x] 4. Frontend - Dashboard Updates
+    - [x] Remove Wellness Insights from `Dashboard.jsx`
+    - [x] Add AI Buddy card to `Dashboard.jsx`
+    - [x] Wire Progress card to `ProgressPage.jsx`
+    - [x] Add `ProgressPage` to App Router
+- [x] 5. Frontend - AI Buddy Chat
+    - [x] Overhaul `AiBuddyChat.jsx` to be interactive and connect to `/api/chat`
+- [x] 6. Frontend - Progress & Admin Pages
+    - [x] Create `ProgressPage.jsx` with check-in stats and the Admin Suggestions section
+    - [x] Update `AdminDashboard.jsx` to include a form to submit suggestions
+- [ ] 7. Verification and Testing

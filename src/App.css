@@ -1,0 +1,269 @@
+/* ═══════════════════════════════════════════════════
+   App Root & Layout
+   ═══════════════════════════════════════════════════ */
+.app-root {
+  width: 100vw;
+  min-height: 100vh;
+  position: relative;
+  /* NO overflow:hidden here — each page is its own scroll host */
+  background: #070b14;
+}
+
+.screen-layer {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  z-index: 10;
+}
+
+/* ═══════════════════════════════════════════════════
+   Ambient Background — Crystal Clear, No Heavy Blur
+   ═══════════════════════════════════════════════════ */
+.ambient-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  transition: filter 0.8s ease;
+}
+
+/* Auth screen: gentle dim only — background stays SHARP */
+.ambient-bg.auth-dimmed {
+  filter: brightness(0.7);
+}
+
+/* ─── 1. Base 4K Landscape Photo ─── */
+.bg-photo {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: 15% center;
+  background-repeat: no-repeat;
+}
+
+/* ─── 2. Bottom Vignette for grounding ─── */
+.bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(7, 11, 20, 0.5) 0%,
+    transparent 25%,
+    transparent 85%,
+    rgba(7, 11, 20, 0.15) 100%
+  );
+  pointer-events: none;
+}
+
+/* ─── 3. Volumetric Sunlight Rays ─── */
+.sun-rays {
+  position: absolute;
+  top: -15%;
+  left: -10%;
+  width: 70%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at 20% 15%,
+    rgba(255, 200, 100, 0.1) 0%,
+    transparent 60%
+  );
+  mix-blend-mode: screen;
+  animation: ray-pulse 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sun-rays-2 {
+  top: -5%;
+  left: 5%;
+  width: 50%;
+  height: 60%;
+  background: radial-gradient(
+    ellipse at 30% 10%,
+    rgba(255, 180, 80, 0.06) 0%,
+    transparent 55%
+  );
+  animation-delay: -5s;
+  animation-duration: 14s;
+}
+
+@keyframes ray-pulse {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+/* ─── 4. Drifting Clouds ─── */
+.cloud {
+  position: absolute;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 230, 240, 0.25) 0%,
+    transparent 70%
+  );
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.cloud-a {
+  width: 550px;
+  height: 110px;
+  top: 6%;
+  animation: drift 140s linear infinite;
+}
+
+.cloud-b {
+  width: 700px;
+  height: 140px;
+  top: 18%;
+  animation: drift 200s linear infinite;
+  animation-delay: -80s;
+}
+
+.cloud-c {
+  width: 420px;
+  height: 90px;
+  top: 3%;
+  animation: drift 170s linear infinite;
+  animation-delay: -120s;
+}
+
+@keyframes drift {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(110vw); }
+}
+
+/* ─── 5. Flying Birds ─── */
+.birds-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.bird-svg {
+  position: absolute;
+  width: 30px;
+  height: 15px;
+}
+
+.bird-1 {
+  animation: fly-across 40s linear infinite, flap 0.6s ease-in-out infinite;
+  top: 12%;
+}
+
+.bird-2 {
+  animation: fly-across 52s linear infinite, flap 0.7s ease-in-out infinite;
+  animation-delay: -18s, 0s;
+  top: 8%;
+  width: 24px;
+}
+
+.bird-3 {
+  animation: fly-across 46s linear infinite, flap 0.55s ease-in-out infinite;
+  animation-delay: -30s, 0s;
+  top: 15%;
+  width: 20px;
+}
+
+@keyframes fly-across {
+  0%   { left: -5%;  transform: translateY(0); }
+  25%  { transform: translateY(-8px); }
+  50%  { transform: translateY(5px); }
+  75%  { transform: translateY(-3px); }
+  100% { left: 105%; transform: translateY(0); }
+}
+
+@keyframes flap {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.3); }
+}
+
+/* ─── 6. Floating Light Particles ─── */
+.particles-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 230, 170, 0.8) 0%, transparent 70%);
+  box-shadow: 0 0 6px rgba(255, 210, 130, 0.35);
+  animation: float-up linear infinite;
+}
+
+@keyframes float-up {
+  0%   { bottom: -5%; opacity: 0; transform: translateX(0); }
+  15%  { opacity: 0.5; }
+  85%  { opacity: 0.5; }
+  100% { bottom: 105%; opacity: 0; transform: translateX(60px); }
+}
+
+/* ─── 7. Falling Autumn Leaves ─── */
+.leaves-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.leaf {
+  position: absolute;
+  top: -3%;
+  opacity: 0;
+}
+
+.leaf-path-1 { animation: leaf-fall-1 linear infinite; }
+.leaf-path-2 { animation: leaf-fall-2 linear infinite; }
+.leaf-path-3 { animation: leaf-fall-3 linear infinite; }
+
+@keyframes leaf-fall-1 {
+  0%   { transform: translate(85vw, -5%) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.8; }
+  88%  { opacity: 0.8; }
+  100% { transform: translate(10vw, 105vh) rotate(540deg); opacity: 0; }
+}
+
+@keyframes leaf-fall-2 {
+  0%   { transform: translate(60vw, -5%) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.85; }
+  88%  { opacity: 0.85; }
+  100% { transform: translate(-5vw, 105vh) rotate(420deg); opacity: 0; }
+}
+
+@keyframes leaf-fall-3 {
+  0%   { transform: translate(40vw, -5%) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.75; }
+  88%  { opacity: 0.75; }
+  100% { transform: translate(20vw, 105vh) rotate(660deg); opacity: 0; }
+}
+
+/* ─── 8. Swaying Grass ─── */
+.grass-container {
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 45px;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+.grass-blade {
+  position: absolute;
+  width: 4px;
+  background: linear-gradient(
+    to top,
+    rgba(30, 70, 25, 0.5) 0%,
+    rgba(76, 175, 80, 0.35) 50%,
+    rgba(139, 195, 74, 0.15) 100%
+  );
+  border-radius: 3px 3px 0 0;
+  transform-origin: bottom center;
+  animation: sway ease-in-out infinite;
+  bottom: 0;
+}
+
+@keyframes sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(4deg); }
+}

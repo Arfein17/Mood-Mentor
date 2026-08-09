@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════════
+   Landing Screen
+   ═══════════════════════════════════════════════════ */
+.landing-screen {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;     /* allow scroll if content overflows */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+  padding: 20px;
+  transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 1s cubic-bezier(0.4, 0, 0.2, 1),
+              filter 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Premium exit: zoom + blur + fade */
+.landing-screen.exit-transition {
+  transform: scale(1.05);
+  opacity: 0;
+  filter: blur(16px);
+  pointer-events: none;
+}
+
+/* Welcome Card — dark tinted glass, minimal blur, landscape visible */
+.landing-card {
+  text-align: center;
+  padding: 48px 44px;
+  background: rgba(7, 11, 20, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  backdrop-filter: blur(6px) saturate(110%);
+  -webkit-backdrop-filter: blur(6px) saturate(110%);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  max-width: 460px;
+  width: 90%;
+  animation: card-enter 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes card-enter {
+  0% { transform: translateY(24px) scale(0.97); opacity: 0; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.landing-title {
+  font-family: var(--font-heading);
+  font-size: 3.2rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.5px;
+  margin-bottom: 10px;
+  text-shadow: 0 3px 16px rgba(0, 0, 0, 0.4);
+}
+
+.landing-subtitle {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.88);
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  margin-bottom: 36px;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.landing-cta {
+  display: flex;
+  justify-content: center;
+}
+
+.begin-btn {
+  padding: 15px 50px !important;
+  font-size: 1.05rem !important;
+  border-radius: 32px !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 992px) {
+  .landing-title { font-size: 2.8rem; }
+}
+
+@media (max-width: 768px) {
+  .landing-title { font-size: 2.4rem; }
+  .landing-card { padding: 36px 28px; }
+}
+
+/* Admin Access Link */
+.admin-access-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.25);
+  font-size: 0.76rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  margin-top: 20px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+.admin-access-link:hover {
+  color: rgba(255,255,255,0.6);
+  background: rgba(255,255,255,0.06);
+}
+
+@media (max-width: 576px) {
+  .landing-screen { padding: 0 16px; }
+  .landing-card { padding: 28px 20px; }
+  .landing-title { font-size: 2rem; }
+  .landing-subtitle { font-size: 0.78rem; letter-spacing: 1.5px; margin-bottom: 28px; }
+}

@@ -1,0 +1,38 @@
+.glass-card {
+  background: rgba(15, 20, 35, 0.55);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 30px;
+  color: var(--color-text-white);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.4s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Very subtle top gloss */
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent 10%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 90%
+  );
+  pointer-events: none;
+}
+
+.glass-card.hover-effect:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.35);
+}

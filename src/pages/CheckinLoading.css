@@ -1,0 +1,191 @@
+/* ═══════════════════════════════════════════════════
+   Check-in Loading Screen
+   ═══════════════════════════════════════════════════ */
+
+.loading-page {
+  position: fixed;     /* full-screen loading animation — intentionally no scroll */
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 30% 30%, rgba(33, 90, 60, 0.4) 0%, transparent 55%),
+    radial-gradient(ellipse at 70% 70%, rgba(29, 60, 110, 0.4) 0%, transparent 55%),
+    linear-gradient(160deg, #030810 0%, #06110a 100%);
+  z-index: 0;
+}
+
+.loading-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: 0;
+  pointer-events: none;
+  animation: orb-drift ease-in-out infinite;
+}
+
+.lo-1 {
+  width: 600px; height: 600px;
+  top: -20%; left: -15%;
+  background: radial-gradient(circle, rgba(74, 160, 100, 0.15) 0%, transparent 70%);
+  animation-duration: 20s;
+}
+
+.lo-2 {
+  width: 500px; height: 500px;
+  bottom: -15%; right: -10%;
+  background: radial-gradient(circle, rgba(56, 120, 200, 0.15) 0%, transparent 70%);
+  animation-duration: 24s;
+  animation-delay: -10s;
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(25px, -25px); }
+}
+
+/* ─── Floating leaves ─── */
+.loading-leaf {
+  position: absolute;
+  top: -5%;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  animation: loading-leaf-fall linear infinite;
+}
+
+@keyframes loading-leaf-fall {
+  0%   { transform: translate(0, -5%) rotate(0deg); opacity: 0; }
+  8%   { opacity: 0.6; }
+  88%  { opacity: 0.6; }
+  100% { transform: translate(50px, 105vh) rotate(480deg); opacity: 0; }
+}
+
+/* ─── Center Content ─── */
+.loading-content {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  max-width: 500px;
+  padding: 20px;
+  text-align: center;
+}
+
+/* ─── Breathing Circle ─── */
+.breathing-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.breath-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(129, 199, 132, 0.25);
+  animation: breath-expand ease-in-out infinite;
+}
+
+.br-outer  { width: 160px; height: 160px; animation-duration: 4s; animation-delay: 0s; }
+.br-middle { width: 110px; height: 110px; animation-duration: 4s; animation-delay: 0.4s; }
+.br-inner  { width: 68px;  height: 68px;  animation-duration: 4s; animation-delay: 0.8s; }
+
+@keyframes breath-expand {
+  0%, 100% { transform: scale(1);    opacity: 0.25; }
+  50%       { transform: scale(1.15); opacity: 0.6; }
+}
+
+.breath-core {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 160, 100, 0.3) 0%, rgba(56, 120, 200, 0.2) 100%);
+  border: 1px solid rgba(129, 199, 132, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: breath-core-pulse 4s ease-in-out infinite;
+  box-shadow: 0 0 30px rgba(74, 160, 100, 0.25);
+}
+
+@keyframes breath-core-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(74, 160, 100, 0.25); }
+  50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(74, 160, 100, 0.5); }
+}
+
+/* ─── Text ─── */
+.loading-title {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.3px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+}
+
+.loading-sub {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin-top: -16px;
+}
+
+/* ─── Progress Bar ─── */
+.loading-progress-track {
+  width: 280px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.loading-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(to right, #4db6ac, #81c784);
+  animation: progress-run 3.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes progress-run {
+  0%   { width: 0%; }
+  100% { width: 100%; }
+}
+
+/* ─── Cycling Messages ─── */
+.loading-messages {
+  position: relative;
+  height: 28px;
+  overflow: hidden;
+}
+
+.loading-msg {
+  position: absolute;
+  width: 100%;
+  font-size: 0.85rem;
+  color: rgba(129, 199, 132, 0.7);
+  font-family: var(--font-sans);
+  text-align: center;
+  animation: msg-cycle 3.5s ease-in-out forwards;
+  opacity: 0;
+}
+
+@keyframes msg-cycle {
+  0%   { opacity: 0; transform: translateY(8px); }
+  15%  { opacity: 1; transform: translateY(0); }
+  70%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-8px); }
+}

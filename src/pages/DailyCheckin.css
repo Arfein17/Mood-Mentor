@@ -1,0 +1,590 @@
+/* ═══════════════════════════════════════════════════
+   Daily Check-in Page — Redesigned
+   ═══════════════════════════════════════════════════ */
+
+/* ─── Page Shell: THIS is the scroll root ─── */
+.checkin-page {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: #070d18;
+}
+
+/* ─── Fixed Ambient Background (behind scroll) ─── */
+.checkin-bg {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 8% 15%, rgba(33,90,60,0.38) 0%, transparent 45%),
+    radial-gradient(ellipse at 92% 85%, rgba(29,60,110,0.45) 0%, transparent 45%),
+    linear-gradient(160deg, #041018 0%, #071510 100%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.checkin-bg-orb {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(70px);
+  z-index: 0;
+  pointer-events: none;
+  animation: orb-drift ease-in-out infinite;
+}
+
+.orb-1 { width: 420px; height: 420px; top:-10%; left:-8%;   background: radial-gradient(circle, rgba(74,160,100,0.16) 0%, transparent 70%); animation-duration: 18s; }
+.orb-2 { width: 360px; height: 360px; bottom:-8%; right:-6%; background: radial-gradient(circle, rgba(56,120,200,0.18) 0%, transparent 70%); animation-duration: 22s; animation-delay:-9s; }
+.orb-3 { width: 260px; height: 260px; top:45%; left:60%;    background: radial-gradient(circle, rgba(130,100,200,0.1) 0%, transparent 70%); animation-duration: 15s; animation-delay:-5s; }
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate(0,0); }
+  50%       { transform: translate(20px,-15px); }
+}
+
+/* ─── Floating Leaves ─── */
+.checkin-leaf {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  background: rgba(129,199,132,0.4);
+  border-radius: 0 50% 50% 50%;
+  animation: cl-fall linear infinite;
+  opacity: 0;
+}
+
+@keyframes cl-fall {
+  0%   { transform: translate(0,-3vh) rotate(0deg); opacity:0; }
+  8%   { opacity:0.55; }
+  88%  { opacity:0.55; }
+  100% { transform: translate(50px,105vh) rotate(480deg); opacity:0; }
+}
+
+/* ─── Scrollable Content Wrapper ─── */
+.checkin-scroll {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  padding: 20px 16px 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.checkin-inner {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─── Back Button ─── */
+.checkin-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 6px 14px;
+  color: rgba(255,255,255,0.65);
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  align-self: flex-start;
+}
+.checkin-back-btn:hover { background: rgba(255,255,255,0.12); color:#fff; transform:translateX(-2px); }
+
+/* ─── Heading ─── */
+.checkin-header {
+  text-align: center;
+  padding: 2px 0 0;
+  animation: fade-down 0.55s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.checkin-icon-ring {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(129,199,132,0.2), rgba(77,182,172,0.2));
+  border: 2px solid rgba(129,199,132,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  color: #81c784;
+}
+
+@keyframes fade-down {
+  0%   { opacity:0; transform:translateY(-12px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+
+.checkin-title {
+  font-family: var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.3px;
+  margin-bottom: 4px;
+  text-shadow: 0 2px 16px rgba(0,0,0,0.4);
+}
+
+.checkin-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.45);
+  font-family: var(--font-sans);
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ─── Tabs ─── */
+.checkin-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  justify-content: center;
+}
+
+.checkin-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 18px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.45);
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.checkin-tab:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.7);
+}
+
+.checkin-tab.active {
+  background: rgba(129,199,132,0.15);
+  color: #a5d6a7;
+  border: 1px solid rgba(129,199,132,0.3);
+}
+
+/* ─── Panel ─── */
+.checkin-panel {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  padding: 22px 24px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 16px 50px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: card-rise 0.45s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes card-rise {
+  0%   { opacity:0; transform:translateY(16px); }
+  100% { opacity:1; transform:translateY(0); }
+}
+
+/* ─── Suggested Questions ─── */
+.suggested-questions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sq-label {
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+.sq-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sq-item {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 5px 12px;
+  color: rgba(255,255,255,0.45);
+  font-size: 0.76rem;
+  font-family: var(--font-sans);
+}
+
+/* ─── Textarea ─── */
+.textarea-wrap { display: flex; flex-direction: column; gap: 7px; }
+
+.checkin-textarea {
+  width: 100%;
+  min-height: 130px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 13px;
+  padding: 13px 15px;
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  line-height: 1.7;
+  resize: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  outline: none;
+}
+.checkin-textarea::placeholder { color: rgba(255,255,255,0.22); }
+.checkin-textarea:focus { border-color: rgba(129,199,132,0.45); box-shadow: 0 0 0 3px rgba(129,199,132,0.07); }
+
+.char-counter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.char-counter > div:first-child {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.char-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.15s ease, background 0.3s ease;
+}
+
+.char-counter span {
+  font-size: 0.72rem;
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: right;
+}
+
+/* ─── Quick Emotion ─── */
+.quick-label {
+  font-family: var(--font-heading);
+  font-size: 0.95rem;
+  color: rgba(255,255,255,0.7);
+  margin: 0 0 4px;
+}
+
+.emotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.emotion-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 14px 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16,1,0.3,1);
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font-sans);
+}
+
+.emotion-tile:hover {
+  background: color-mix(in srgb, var(--em-color) 10%, transparent);
+  border-color: color-mix(in srgb, var(--em-color) 30%, transparent);
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 16px rgba(0,0,0,0.18);
+}
+
+.emotion-tile.selected {
+  background: color-mix(in srgb, var(--em-color) 15%, transparent);
+  border-color: var(--em-color);
+  color: var(--em-color);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+.emotion-emoji { font-size: 1.6rem; line-height: 1; }
+.emotion-label { font-size: 0.78rem; font-weight: 500; }
+
+.emotion-check {
+  position: absolute;
+  top: 4px; right: 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--em-color);
+}
+
+.selected-emotion-note {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.5);
+  font-family: var(--font-sans);
+  text-align: center;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* ─── Selfie ─── */
+.selfie-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.selfie-preview {
+  width: 160px;
+  height: 160px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid rgba(129,199,132,0.35);
+}
+
+.selfie-remove-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(240,98,146,0.12);
+  border: 1px solid rgba(240,98,146,0.3);
+  color: #f06292;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.selfie-remove-btn:hover { background: rgba(240,98,146,0.22); }
+
+.selfie-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.selfie-label {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+}
+
+.selfie-btn-row {
+  display: flex;
+  gap: 12px;
+}
+
+.selfie-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 24px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-sans);
+  border: 1.5px dashed rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.03);
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.selfie-action-btn:hover { background: rgba(129,199,132,0.1); border-color: rgba(129,199,132,0.4); color:#fff; }
+.selfie-action-btn svg { color: #81c784; }
+
+.selfie-privacy-note {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+}
+
+.camera-error-banner {
+  background: rgba(240,98,146,0.1);
+  border: 1px solid rgba(240,98,146,0.28);
+  border-radius: 10px;
+  padding: 9px 13px;
+  color: #f48fb1;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─── Camera Overlay ─── */
+.camera-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-modal {
+  background: #1a1f2e;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 420px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+
+.camera-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  color: #fff;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+}
+
+.camera-close {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.camera-video {
+  width: 100%;
+  max-height: 300px;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+
+.camera-footer {
+  display: flex;
+  justify-content: center;
+  padding: 14px;
+}
+
+.camera-privacy-note {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.3);
+  text-align: center;
+  padding: 0 14px 14px;
+}
+
+/* ─── Summary Chips ─── */
+.checkin-summary {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.summary-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 10px;
+  font-size: 0.74rem;
+  font-family: var(--font-sans);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.35);
+  transition: all 0.2s ease;
+}
+
+.summary-chip.filled {
+  background: rgba(129,199,132,0.1);
+  border-color: rgba(129,199,132,0.3);
+  color: #a5d6a7;
+}
+
+/* ─── Error ─── */
+.checkin-api-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(240,98,146,0.1);
+  border: 1px solid rgba(240,98,146,0.28);
+  border-radius: 10px;
+  padding: 9px 13px;
+  color: #f48fb1;
+  font-size: 0.84rem;
+  font-family: var(--font-sans);
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  25% { transform:translateX(-5px); }
+  75% { transform:translateX(5px); }
+}
+
+/* ─── Actions ─── */
+.checkin-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding-top: 4px;
+}
+
+.submit-btn {
+  padding: 13px 46px !important;
+  font-size: 0.98rem !important;
+  border-radius: 28px !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 600 !important;
+}
+
+.skip-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.3);
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.skip-btn:hover { color: rgba(255,255,255,0.6); }
+
+/* ═══════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 600px) {
+  .checkin-scroll { padding: 14px 12px 32px; }
+  .checkin-panel { padding: 16px 14px; gap: 14px; }
+  .checkin-title { font-size: 1.5rem; }
+  .emotion-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .emotion-emoji { font-size: 1.35rem; }
+  .selfie-btn-row { flex-direction: column; gap: 8px; }
+  .camera-video { max-height: 220px; }
+}

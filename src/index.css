@@ -1,0 +1,69 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+/* ═══════════════════════════════════════════════════
+   Design System Tokens
+   ═══════════════════════════════════════════════════ */
+:root {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Outfit', system-ui, sans-serif;
+
+  --color-primary: #5c6bc0;
+  --color-sage: #81c784;
+  --color-sunset: #f06292;
+  --color-gold: #ffb74d;
+
+  --color-text-primary: #1c2541;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-text-white: #ffffff;
+
+  --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ═══════════════════════════════════════════════════
+   Global Reset
+   ═══════════════════════════════════════════════════ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background-color: #070b14;
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* ═══════════════════════════════════════════════════
+   Scrollbar
+   ═══════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.03); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+
+/* ═══════════════════════════════════════════════════
+   Ripple Button Animation (used by Button component)
+   ═══════════════════════════════════════════════════ */
+@keyframes ripple-effect {
+  0%   { width: 0; height: 0; opacity: 0.5; }
+  100% { width: 300px; height: 300px; opacity: 0; }
+}
