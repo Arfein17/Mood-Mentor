@@ -12,12 +12,16 @@ import RewardsPage from './pages/RewardsPage';
 import ProgressPage from './pages/ProgressPage';
 import heroBg from './assets/hero_bg.png';
 import { useUser } from './context/UserContext';
+import BuddyWidget from './components/BuddyWidget';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState('landing');
+  const { user, logout, refreshPoints } = useUser();
+  const [currentScreen, setCurrentScreen] = useState(() => {
+    if (!user) return 'landing';
+    return user.role === 'admin' ? 'admin' : 'dashboard';
+  });
   const [wellnessResult, setWellnessResult] = useState(null);
   const [checkinContext, setCheckinContext] = useState({ text: '', emotion: null });
-  const { user, logout, refreshPoints } = useUser();
 
   const handleLogout = () => {
     logout();
@@ -218,6 +222,11 @@ function App() {
           />
         )}
       </div>
+
+      {/* Global Wellness Buddy — on every logged-in screen */}
+      {user && !['landing', 'auth', 'admin-login', 'admin'].includes(currentScreen) && (
+        <BuddyWidget />
+      )}
     </div>
   );
 }

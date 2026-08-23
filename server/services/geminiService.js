@@ -6,9 +6,11 @@ try {
   if (process.env.GEMINI_API_KEY) {
     ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
-} catch (err) {
+} catch {
   console.log('[Gemini] Not initialized. Fallback mode will be used.');
 }
+
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 const WELLNESS_CLASSES = ['Happy', 'Calm', 'Stressed', 'Anxious', 'Frustrated', 'Sad'];
 
@@ -50,7 +52,7 @@ async function analyzeCheckin(text, userEmotion, imageBuffer) {
     // but the prompt is aware if they provided one.
     
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: GEMINI_MODEL,
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -86,20 +88,24 @@ async function chatBuddy(messages, userEmotion) {
     You are conversational, empathetic, and offer superpowers like suggesting songs, games, hangout plans, or relaxation techniques based on their mood.
     Keep your responses concise, friendly, and formatted nicely. Use emojis.`;
 
+    // Build a proper chat history (user + model turns) instead of
+    // re-sending only the user messages as new prompts.
+    const history = (messages.slice(0, -1) || [])
+      .filter(m => (m.role === 'user' || m.role === 'model') && m.content)
+      .map(m => ({ role: m.role, parts: [{ text: String(m.content) }] }));
+
+    // Gemini requires history to alternate and start with a user turn.
+    while (history.length > 0 && history[0].role !== 'user') {
+      history.shift();
+    }
+
     const chat = ai.chats.create({
-      model: 'gemini-2.5-flash',
+      model: GEMINI_MODEL,
       config: {
         systemInstruction: systemPrompt
-      }
+      },
+      history
     });
-
-    // Send history
-    for (let i = 0; i < messages.length - 1; i++) {
-      const msg = messages[i];
-      if (msg.role === 'user') {
-        await chat.sendMessage({ message: msg.content }); // Just prime the history if needed
-      }
-    }
 
     const lastMessage = messages[messages.length - 1].content;
     const response = await chat.sendMessage({ message: lastMessage });
@@ -109,6 +115,62 @@ async function chatBuddy(messages, userEmotion) {
     console.error('[Gemini] Chat API error, falling back to mock:', err);
     return mockChatBuddy(messages, userEmotion);
   }
+}
+
+/**
+ * LLM-personalised wellness recommendation.
+ * Returns { text, category, source:'gemini' } or null when unavailable.
+ */
+const RECOMMENDATION_CATEGORIES = ['breathing', 'mindfulness', 'motivational',
+  'habit_reinforcement', 'cooldown', 'general', 'personalised'];
+
+async function personalizedRecommendation({ emotionLabel, wellnessScore, trendSummary }) {
+  if (!ai) return null;
+
+  try {
+    const trendLine = trendSummary
+      ? `History (last 7 days): ${trendSummary.daysTracked} entries tracked, average wellness ${trendSummary.avgWellness}/100, most frequent emotions: ${trendSummary.topEmotions.join(', ')}.`
+      : 'No prior history available for this user.';
+
+    const prompt = `
+      You are a caring wellness coach inside the Mode Mentor app.
+      The user's detected emotion right now: ${emotionLabel || 'Unknown'}
+      Current wellness score: ${wellnessScore ?? 'unknown'}/100
+      ${trendLine}
+
+      Write ONE short, warm, actionable suggestion tailored to this person.
+      Rules: max 220 characters, reference their history ONLY if relevant,
+      suggest one concrete thing they can do in the next hour.
+      Respond with pure JSON (no markdown): {"text": "...", "category": "one of breathing|mindfulness|motivational|habit_reinforcement|cooldown|general|personalised"}
+    `;
+
+    const response = await ai.models.generateContent({
+      model: GEMINI_MODEL,
+      contents: prompt,
+      config: { responseMimeType: 'application/json', temperature: 0.9 },
+    });
+
+    const parsed = JSON.parse(response.text);
+    if (!parsed || typeof parsed.text !== 'string' || !parsed.text.trim()) return null;
+
+    const category = RECOMMENDATION_CATEGORIES.includes(parsed.category)
+      ? parsed.category
+      : 'personalised';
+
+    return { text: parsed.text.trim(), category, source: 'gemini' };
+  } catch (err) {
+    console.error('[Gemini] Personalised recommendation failed:', err.message);
+    return null;
+  }
+}
+
+/** Resolve with fallbackValue if promise takes longer than ms. */
+function withTimeout(promise, ms, fallbackValue = null) {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve(fallbackValue), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 // ── Fallback Mocks (if no API key provided) ──
@@ -168,10 +230,12 @@ function mockChatBuddy(messages, userEmotion) {
     return "How about grabbing a coffee with a friend, or going for a walk in a local park? Nature is a great reset! 🌳☕";
   }
   
-  return `I hear you! As your simulated AI buddy (since no API key was provided), I suggest taking a 5-minute breather. (Add a Gemini API key in .env for my full superpowers!) 💚`;
+  return `I hear you 💚 Let's take this one step at a time — try a slow 5-minute breather: inhale for 4, hold for 2, exhale for 6. I'm here if you want music, game or hangout ideas too!`;
 }
 
 module.exports = {
   analyzeCheckin,
-  chatBuddy
+  chatBuddy,
+  personalizedRecommendation,
+  withTimeout,
 };

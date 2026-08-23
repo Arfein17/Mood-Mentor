@@ -8,7 +8,8 @@
     "start": "node index.js",
     "dev": "node --watch index.js",
     "test": "jest",
-    "validate": "node scripts/validate.js"
+    "validate": "node scripts/validate.js",
+    "validate:model": "node scripts/validateClassifier.js"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",

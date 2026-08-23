@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { EmotionResult, Checkin, AdminIssueReport, User, AdminSuggestion, AdminNote, sequelize } = require('../models');
+const { EmotionResult, Checkin, AdminIssueReport, User, AdminSuggestion, AdminNote, EmotionFeedback, RecommendationFeedback, sequelize } = require('../models');
 const { generateDepartmentAlerts } = require('../services/predictiveAlerts');
 const { requireAdmin } = require('../middleware/authMiddleware');
 
@@ -53,7 +53,25 @@ router.get('/analytics', requireAdmin, async (req, res) => {
       console.log('[Admin] Department query fallback:', e.message);
     }
 
-    res.json({ totalCheckins, averageWellnessScore, emotionBreakdown, byDepartment });
+    // Milestone 3: model-quality & recommendation-effectiveness aggregates
+    let correctionCount = 0;
+    let recommendationEffectiveness = { helpful: 0, notHelpful: 0, helpfulRatio: null };
+    try {
+      correctionCount = await EmotionFeedback.count();
+
+      const helpfulCount = await RecommendationFeedback.count({ where: { helpful: true } });
+      const notHelpfulCount = await RecommendationFeedback.count({ where: { helpful: false } });
+      const total = helpfulCount + notHelpfulCount;
+      recommendationEffectiveness = {
+        helpful: helpfulCount,
+        notHelpful: notHelpfulCount,
+        helpfulRatio: total ? Math.round((helpfulCount / total) * 100) / 100 : null,
+      };
+    } catch (e) {
+      console.log('[Admin] Feedback aggregates fallback:', e.message);
+    }
+
+    res.json({ totalCheckins, averageWellnessScore, emotionBreakdown, byDepartment, correctionCount, recommendationEffectiveness });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

@@ -17,6 +17,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { requestLogger } = require('./middleware/logging');
+const { rateLimit } = require('./middleware/rateLimiter');
 const checkinRouter = require('./routes/checkin');
 const pointsRouter = require('./routes/points');
 const challengesRouter = require('./routes/challenges');
@@ -46,6 +47,9 @@ app.use(express.json({ limit: '2mb' }));
 
 // Redacting request logger (never logs raw text or image buffers)
 app.use(requestLogger);
+
+// Global API rate limit — 120 requests per minute per client IP
+app.use(rateLimit({ windowMs: 60000, max: 120 }));
 
 const { requireAuth } = require('./middleware/authMiddleware');
 
