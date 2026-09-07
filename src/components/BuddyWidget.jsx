@@ -4,6 +4,32 @@ import { useUser } from '../context/UserContext';
 import { fetchWithAuth } from '../api/client';
 import './BuddyWidget.css';
 
+const renderInline = (text) => {
+  const boldParts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  return boldParts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return <strong key={`b${i}`}>{part.slice(2, -2)}</strong>;
+    }
+    const italicParts = part.split(/(\*[^*\n]+\*)/g);
+    return italicParts.map((sub, j) => {
+      if (sub.startsWith('*') && sub.endsWith('*') && sub.length > 2) {
+        return <em key={`i${i}-${j}`}>{sub.slice(1, -1)}</em>;
+      }
+      return sub;
+    });
+  });
+};
+
+const formatMessage = (content) =>
+  String(content ?? '')
+    .split('\n')
+    .map((line, i) => (
+      <React.Fragment key={i}>
+        {i > 0 && <br />}
+        {renderInline(line)}
+      </React.Fragment>
+    ));
+
 const BuddyWidget = () => {
   const { user } = useUser();
   const [isOpen, setIsOpen] = useState(false);
@@ -103,7 +129,7 @@ const BuddyWidget = () => {
             {messages.map((m, i) => (
               <div key={i} className={`buddy-message ${m.role}`}>
                 <div className="buddy-message-bubble">
-                  {m.content}
+                  {formatMessage(m.content)}
                 </div>
               </div>
             ))}

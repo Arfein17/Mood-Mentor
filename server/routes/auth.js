@@ -3,8 +3,12 @@ const router = express.Router();
 const { User } = require('../models');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+const { rateLimit } = require('../middleware/rateLimiter');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'mode-mentor-secret-key-2026';
+
+// Brute-force protection — 25 auth attempts per 5 minutes per IP
+router.use(rateLimit({ windowMs: 300000, max: 25, message: 'Too many attempts. Please try again in a few minutes.' }));
 
 // POST /api/auth/login
 router.post('/login', async (req, res) => {
