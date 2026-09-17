@@ -7,19 +7,21 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node --watch index.js",
-    "test": "jest",
-    "validate": "node scripts/validate.js",
-    "validate:model": "node scripts/validateClassifier.js"
+    "test": "jest --runInBand --forceExit",
+    "validate": "node scripts/validate.js"
   },
   "dependencies": {
     "@google/genai": "^2.15.0",
+    "@google/generative-ai": "^0.24.1",
     "@xenova/transformers": "^2.17.2",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
     "multer": "^2.2.0",
     "mysql2": "^3.23.2",
     "node-cron": "^4.6.0",
+    "nodemailer": "^10.0.10",
     "sequelize": "^6.37.8",
     "sequelize-cli": "^6.6.5"
   },

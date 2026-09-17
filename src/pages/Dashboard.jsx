@@ -3,14 +3,15 @@ import './Dashboard.css';
 import GlassCard from '../components/GlassCard';
 import Button from '../components/Button';
 import Navbar from '../components/Navbar';
+import GamesBox from '../components/GamesBox';
 import { 
   Heart, Award, TrendingUp, BookOpen, Lock, Sparkles
 } from 'lucide-react';
 
-const Dashboard = ({ onLogout, onStartCheckin, onOpenRewards, onOpenProgress }) => {
+const Dashboard = ({ onLogout, onStartCheckin, onOpenRewards, onOpenProgress, onOpenProfile }) => {
   return (
     <div className="dashboard-page">
-      <Navbar onLogout={onLogout} showLogout={true} />
+      <Navbar onLogout={onLogout} onOpenProfile={onOpenProfile} showLogout={true} />
 
       <main className="dashboard-content">
         <header className="dashboard-header">
@@ -73,6 +74,8 @@ const Dashboard = ({ onLogout, onStartCheckin, onOpenRewards, onOpenProgress }) 
               View Progress
             </Button>
           </GlassCard>
+
+          <GamesBox />
 
         </div>
       </main>

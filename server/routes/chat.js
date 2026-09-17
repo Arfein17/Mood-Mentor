@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const geminiService = require('../services/geminiService');
+const buddyChat = require('../services/buddyChat');
 
 router.post('/', async (req, res, next) => {
   try {
@@ -10,7 +10,8 @@ router.post('/', async (req, res, next) => {
       return res.status(400).json({ error: 'Messages array is required' });
     }
 
-    const reply = await geminiService.chatBuddy(messages, userEmotion);
+    const context = typeof userEmotion === 'object' ? userEmotion : { emotion: userEmotion };
+    const reply = await buddyChat.chatBuddy(messages, context);
     
     res.json({ reply });
   } catch (err) {

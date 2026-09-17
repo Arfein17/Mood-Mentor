@@ -3,12 +3,12 @@ const jwt = require('jsonwebtoken');
 const JWT_SECRET = process.env.JWT_SECRET || 'mode-mentor-secret-key-2026';
 
 function requireAuth(req, res, next) {
-  if (process.env.NODE_ENV === 'test') {
-    req.user = { id: 'TEST_USER', role: 'admin' }; // Mock user for tests
+  const authHeader = req.headers.authorization;
+  if (process.env.NODE_ENV === 'test' && (!authHeader || !authHeader.startsWith('Bearer '))) {
+    req.user = { id: 'TEST_USER', role: 'admin' }; // Mock user for tests if no token
     return next();
   }
 
-  const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized: No token provided' });
   }

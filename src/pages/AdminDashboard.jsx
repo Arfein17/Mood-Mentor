@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import './AdminDashboard.css';
 import GlassCard from '../components/GlassCard';
 import Navbar from '../components/Navbar';
-import { fetchAdminAnalytics, fetchAdminAlerts, fetchAdminTrends } from '../api/client';
-import { ArrowLeft, ShieldCheck, Activity, AlertTriangle, TrendingUp, Users, PieChart, BarChart3, LineChart } from 'lucide-react';
+import { fetchAdminAnalytics, fetchAdminTrends, fetchAdminReflections, broadcastAdminSuggestion, fetchAllMentorPosts, replyToMentorPost } from '../api/client';
+import { ShieldCheck, Activity, AlertTriangle, TrendingUp, Users, PieChart, BarChart3, LineChart, MessageSquareQuote, Send, CheckCircle2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 /* Simple SVG bar chart component */
@@ -81,22 +81,36 @@ function DonutChart({ segments, centerLabel }) {
 
 const AdminDashboard = ({ onBack, onLogout }) => {
   const [analytics, setAnalytics] = useState(null);
-  const [alerts, setAlerts] = useState(null);
   const [trends, setTrends] = useState([]);
+  const [reflections, setReflections] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Broadcast state
+  const [broadcastMsg, setBroadcastMsg] = useState('');
+  const [broadcastDept, setBroadcastDept] = useState('ALL');
+  const [broadcasting, setBroadcasting] = useState(false);
+  const [broadcastStatus, setBroadcastStatus] = useState(null);
+
+  // Mentor posts state
+  const [mentorPosts, setMentorPosts] = useState([]);
+  const [replyTexts, setReplyTexts] = useState({});
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyStatus, setReplyStatus] = useState({});
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [analyticsData, alertsData, trendsData] = await Promise.all([
+        const [analyticsData, trendsData, reflectionsData, mentorPostsData] = await Promise.all([
           fetchAdminAnalytics(),
-          fetchAdminAlerts(),
-          fetchAdminTrends()
+          fetchAdminTrends(),
+          fetchAdminReflections(),
+          fetchAllMentorPosts().catch(() => [])
         ]);
         setAnalytics(analyticsData);
-        setAlerts(alertsData.alerts);
         setTrends(trendsData);
+        setReflections(reflectionsData);
+        setMentorPosts(mentorPostsData || []);
       } catch (err) {
         setError('Failed to load admin data: ' + err.message);
       } finally {
@@ -105,6 +119,47 @@ const AdminDashboard = ({ onBack, onLogout }) => {
     };
     loadData();
   }, []);
+
+  const handleReply = async (postId) => {
+    const msg = replyTexts[postId];
+    if (!msg || !msg.trim()) return;
+    setReplyingTo(postId);
+    try {
+      await replyToMentorPost(postId, msg.trim());
+      setReplyTexts(prev => ({ ...prev, [postId]: '' }));
+      setReplyStatus(prev => ({ ...prev, [postId]: 'success' }));
+      // Refresh posts
+      const updated = await fetchAllMentorPosts();
+      setMentorPosts(updated || []);
+      setTimeout(() => setReplyStatus(prev => ({ ...prev, [postId]: '' })), 3000);
+    } catch (err) {
+      setReplyStatus(prev => ({ ...prev, [postId]: 'error:' + err.message }));
+    } finally {
+      setReplyingTo(null);
+    }
+  };
+
+  const handleBroadcast = async (e) => {
+    e.preventDefault();
+    if (!broadcastMsg.trim()) return;
+    setBroadcasting(true);
+    setBroadcastStatus(null);
+    try {
+      await broadcastAdminSuggestion(broadcastMsg.trim(), broadcastDept);
+      setBroadcastStatus({
+        type: 'success',
+        text: `Suggestion broadcasted to ${broadcastDept === 'ALL' ? 'all departments' : `the ${broadcastDept} department`}!`
+      });
+      setBroadcastMsg('');
+    } catch (err) {
+      setBroadcastStatus({
+        type: 'error',
+        text: 'Error broadcasting: ' + err.message
+      });
+    } finally {
+      setBroadcasting(false);
+    }
+  };
 
   // Prepare chart data from analytics
   const deptScores = analytics?.byDepartment?.map(d => ({
@@ -119,16 +174,19 @@ const AdminDashboard = ({ onBack, onLogout }) => {
 
   const emotionBreakdown = analytics?.emotionBreakdown || [];
 
+  // Available departments for broadcasting
+  const departmentOptions = Array.from(new Set(
+    (analytics?.byDepartment || [])
+      .map(d => d.department)
+      .filter(d => d && d !== 'Unknown')
+  ));
+
   return (
     <div className="admin-page">
-      <Navbar showLogout={true} onLogout={onLogout} />
+      <Navbar showLogout={true} onLogout={onLogout} showBack={true} onBack={onBack} />
 
       <div className="admin-scroll">
         <div className="admin-inner">
-          <button className="admin-back-btn" onClick={onBack}>
-            <ArrowLeft size={18} />
-            <span>Back</span>
-          </button>
 
           <div className="admin-header">
             <div className="admin-icon-ring">
@@ -145,29 +203,47 @@ const AdminDashboard = ({ onBack, onLogout }) => {
               <AlertTriangle size={18} style={{ color: '#ffb74d' }} />
               Broadcast Wellness Suggestion
             </h3>
-            <p className="admin-subtitle" style={{marginBottom: '1rem'}}>Send a suggestion that will appear in all users' Progress boxes.</p>
-            <form onSubmit={async (e) => {
-              e.preventDefault();
-              const msg = e.target.elements.suggestion.value;
-              if (!msg) return;
-              try {
-                const res = await fetch('http://localhost:3001/api/admin/suggestions', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ message: msg })
-                });
-                if (res.ok) {
-                  alert('Suggestion broadcasted successfully!');
-                  e.target.reset();
-                } else {
-                  throw new Error('Failed to broadcast');
-                }
-              } catch (err) {
-                alert('Error: ' + err.message);
-              }
-            }} style={{ display: 'flex', gap: '1rem' }}>
-              <input name="suggestion" placeholder="E.g., Take a 5-minute break today!" style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', border: 'none', background: 'rgba(255,255,255,0.1)', color: 'white' }} />
-              <button type="submit" style={{ padding: '0.8rem 1.5rem', borderRadius: '8px', border: 'none', background: 'var(--primary)', color: 'white', cursor: 'pointer', fontWeight: 'bold' }}>Broadcast</button>
+            <p className="admin-subtitle" style={{ marginBottom: '1rem' }}>
+              Send proactive guidance that appears in users' Progress page "Mentor Notes" section.
+            </p>
+
+            {broadcastStatus && (
+              <div className={`broadcast-alert-banner ${broadcastStatus.type === 'success' ? 'success' : 'error'}`}>
+                {broadcastStatus.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+                <span>{broadcastStatus.text}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleBroadcast} className="broadcast-form">
+              <div className="broadcast-fields">
+                <input
+                  name="suggestion"
+                  value={broadcastMsg}
+                  onChange={(e) => setBroadcastMsg(e.target.value)}
+                  placeholder="E.g., Practice mindful breathing today or join our afternoon stretch!"
+                  className="broadcast-input"
+                  required
+                />
+                <select
+                  value={broadcastDept}
+                  onChange={(e) => setBroadcastDept(e.target.value)}
+                  className="broadcast-dept-select"
+                  title="Target Department"
+                >
+                  <option value="ALL">All Departments (Global)</option>
+                  {departmentOptions.map(dept => (
+                    <option key={dept} value={dept}>{dept}</option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  disabled={broadcasting || !broadcastMsg.trim()}
+                  className="broadcast-submit-btn"
+                >
+                  <Send size={15} />
+                  <span>{broadcasting ? 'Sending...' : 'Broadcast'}</span>
+                </button>
+              </div>
             </form>
           </GlassCard>
 
@@ -253,24 +329,142 @@ const AdminDashboard = ({ onBack, onLogout }) => {
                 </GlassCard>
               )}
 
-              {/* Alerts */}
-              <GlassCard className="admin-card">
-                <h3 className="admin-card-title">
-                  <AlertTriangle size={18} style={{ color: '#f06292' }} />
-                  Department Predictive Alerts
-                </h3>
-                {alerts && alerts.length > 0 ? (
-                  <ul className="alert-list">
-                    {alerts.map((alert, idx) => (
-                      <li key={idx} className="alert-item">
-                        <span className="alert-dept">{alert.department}:</span> 
-                        <span className="alert-msg">{alert.alert}</span>
-                        <span className="alert-score">Avg Score: {Math.round(alert.avgScore)}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {/* User Reflections (Shared by Consent) */}
+              <GlassCard className="admin-card reflections-card" style={{ gridColumn: '1 / -1' }}>
+                <div className="reflections-header-wrap">
+                  <div>
+                    <h3 className="admin-card-title">
+                      <MessageSquareQuote size={20} style={{ color: '#81c784' }} />
+                      User Reflections (Shared by Consent)
+                    </h3>
+                    <p className="admin-subtitle" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                      🔒 Only check-ins from users who opted in to share their reflections are displayed. Real IDs and personal identifiers are strictly excluded.
+                    </p>
+                  </div>
+                  <span className="reflections-count-badge">{reflections.length} Shared</span>
+                </div>
+
+                {reflections && reflections.length > 0 ? (
+                  <div className="reflections-grid">
+                    {reflections.map((ref) => {
+                      const emotionColorMap = {
+                        Happy: '#ffb74d',
+                        Calm: '#81c784',
+                        Sad: '#90caf9',
+                        Frustrated: '#ef5350',
+                        Anxious: '#ff8a65',
+                        Stressed: '#f06292'
+                      };
+                      const emotionColor = emotionColorMap[ref.emotion] || '#a0aec0';
+
+                      return (
+                        <div key={ref.id} className="reflection-card-item">
+                          <div className="reflection-meta">
+                            <div className="reflection-author">
+                              <span className="reflection-avatar">🌱</span>
+                              <span className="reflection-name">{ref.displayName}</span>
+                            </div>
+                            <div className="reflection-tags">
+                              <span
+                                className="reflection-emotion-pill"
+                                style={{ borderColor: emotionColor, color: emotionColor, background: `${emotionColor}18` }}
+                              >
+                                {ref.emotion}
+                              </span>
+                              {ref.wellnessScore !== null && (
+                                <span className="reflection-score-pill">
+                                  {ref.wellnessScore}/100
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="reflection-quote">"{ref.text}"</p>
+                          <div className="reflection-time">
+                            {new Date(ref.createdAt).toLocaleDateString(undefined, {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <p className="no-alerts">✅ No active departmental alerts. Wellness is stable across all departments.</p>
+                  <p className="no-reflections">
+                    🌱 No shared reflections yet. Consenting users' check-in messages will appear here anonymously.
+                  </p>
+                )}
+              </GlassCard>
+
+              {/* Mentor Notes — User Posts Management */}
+              <GlassCard className="admin-card mentor-posts-admin-card" style={{ gridColumn: '1 / -1' }}>
+                <h3 className="admin-card-title">
+                  <MessageSquareQuote size={20} style={{ color: '#a78bfa' }} />
+                  Mentor Notes — User Messages
+                </h3>
+                <p className="admin-subtitle" style={{ marginBottom: '1.25rem', fontSize: '0.88rem' }}>
+                  Reply to users' messages. Only you (the admin) can reply — users see your response in their Progress page.
+                </p>
+                {mentorPosts.length === 0 ? (
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>No user messages yet.</p>
+                ) : (
+                  <div className="mentor-posts-list">
+                    {mentorPosts.map(post => (
+                      <div key={post.id} className="mentor-admin-post">
+                        <div className="mentor-admin-meta">
+                          <span className="mentor-admin-author">
+                            {post.Author?.display_name || post.Author?.employee_or_student_id || `User #${post.user_id}`}
+                          </span>
+                          {post.Author?.department && (
+                            <span className="mentor-admin-dept">{post.Author.department}</span>
+                          )}
+                          <span className="mentor-admin-time">{new Date(post.created_at).toLocaleString()}</span>
+                          {(!post.Replies || post.Replies.length === 0) && (
+                            <span className="mentor-pending-badge">● Pending reply</span>
+                          )}
+                        </div>
+                        <div className="mentor-admin-message">{post.note_text}</div>
+
+                        {/* Existing replies */}
+                        {post.Replies && post.Replies.length > 0 && (
+                          <div className="mentor-admin-replies">
+                            {post.Replies.map(r => (
+                              <div key={r.id} className="mentor-admin-reply-bubble">
+                                <span className="mentor-admin-reply-label">Your reply:</span>
+                                {r.note_text}
+                                <span className="mentor-admin-reply-time">{new Date(r.created_at).toLocaleString()}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Reply form */}
+                        <div className="mentor-admin-reply-form">
+                          <input
+                            type="text"
+                            className="mentor-admin-reply-input"
+                            placeholder="Type your reply..."
+                            value={replyTexts[post.id] || ''}
+                            onChange={e => setReplyTexts(prev => ({ ...prev, [post.id]: e.target.value }))}
+                            onKeyDown={e => { if (e.key === 'Enter') handleReply(post.id); }}
+                            disabled={replyingTo === post.id}
+                          />
+                          <button
+                            className="mentor-admin-reply-btn"
+                            onClick={() => handleReply(post.id)}
+                            disabled={replyingTo === post.id || !replyTexts[post.id]?.trim()}
+                          >
+                            <Send size={15} />
+                            {replyingTo === post.id ? 'Sending...' : 'Reply'}
+                          </button>
+                        </div>
+                        {replyStatus[post.id] === 'success' && <p className="mentor-reply-status success">✓ Reply sent!</p>}
+                        {replyStatus[post.id]?.startsWith('error:') && <p className="mentor-reply-status error">{replyStatus[post.id].replace('error:', '')}</p>}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </GlassCard>
 

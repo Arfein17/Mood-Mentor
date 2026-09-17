@@ -124,6 +124,7 @@
   border-radius: 12px;
   padding: 0 14px;
   transition: border-color 0.2s;
+  overflow: hidden;
 }
 
 .admin-input-wrapper:focus-within {

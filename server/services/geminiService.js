@@ -6,11 +6,9 @@ try {
   if (process.env.GEMINI_API_KEY) {
     ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
   }
-} catch {
+} catch (err) {
   console.log('[Gemini] Not initialized. Fallback mode will be used.');
 }
-
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-3.6-flash';
 
 const WELLNESS_CLASSES = ['Happy', 'Calm', 'Stressed', 'Anxious', 'Frustrated', 'Sad'];
 
@@ -51,13 +49,26 @@ async function analyzeCheckin(text, userEmotion, imageBuffer) {
     // Note: We are ignoring the imageBuffer for the API call to keep it fast and simple, 
     // but the prompt is aware if they provided one.
     
-    const response = await ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-      }
-    });
+    const modelName = 'gemini-3.6-flash';
+    let response;
+    try {
+      response = await ai.models.generateContent({
+        model: modelName,
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        }
+      });
+    } catch (modelErr) {
+      console.warn(`[Gemini] ${modelName} failed, attempting gemini-flash-latest fallback:`, modelErr.message);
+      response = await ai.models.generateContent({
+        model: 'gemini-flash-latest',
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+        }
+      });
+    }
 
     const result = JSON.parse(response.text);
     return {
@@ -74,103 +85,13 @@ async function analyzeCheckin(text, userEmotion, imageBuffer) {
   }
 }
 
-/**
- * Chat with the AI Buddy using Gemini.
- */
-async function chatBuddy(messages, userEmotion) {
-  if (!ai) {
-    return mockChatBuddy(messages, userEmotion);
-  }
-
-  try {
-    const systemPrompt = `You are an AI Buddy for a wellness app called "Mode Mentor".
-    The user's recent check-in emotion was: ${userEmotion || 'Unknown'}.
-    You are conversational, empathetic, and offer superpowers like suggesting songs, games, hangout plans, or relaxation techniques based on their mood.
-    Keep your responses concise, friendly, and formatted nicely. Use emojis.`;
-
-    // Build a proper chat history (user + model turns) instead of
-    // re-sending only the user messages as new prompts.
-    const history = (messages.slice(0, -1) || [])
-      .filter(m => (m.role === 'user' || m.role === 'model') && m.content)
-      .map(m => ({ role: m.role, parts: [{ text: String(m.content) }] }));
-
-    // Gemini requires history to alternate and start with a user turn.
-    while (history.length > 0 && history[0].role !== 'user') {
-      history.shift();
-    }
-
-    const chat = ai.chats.create({
-      model: GEMINI_MODEL,
-      config: {
-        systemInstruction: systemPrompt
-      },
-      history
-    });
-
-    const lastMessage = messages[messages.length - 1].content;
-    const response = await chat.sendMessage({ message: lastMessage });
-    
-    return response.text;
-  } catch (err) {
-    console.error('[Gemini] Chat API error, falling back to mock:', err);
-    return mockChatBuddy(messages, userEmotion);
-  }
-}
+const buddyChat = require('./buddyChat');
 
 /**
- * LLM-personalised wellness recommendation.
- * Returns { text, category, source:'gemini' } or null when unavailable.
+ * Chat with the AI Buddy using the buddyChat service.
  */
-const RECOMMENDATION_CATEGORIES = ['breathing', 'mindfulness', 'motivational',
-  'habit_reinforcement', 'cooldown', 'general', 'personalised'];
-
-async function personalizedRecommendation({ emotionLabel, wellnessScore, trendSummary }) {
-  if (!ai) return null;
-
-  try {
-    const trendLine = trendSummary
-      ? `History (last 7 days): ${trendSummary.daysTracked} entries tracked, average wellness ${trendSummary.avgWellness}/100, most frequent emotions: ${trendSummary.topEmotions.join(', ')}.`
-      : 'No prior history available for this user.';
-
-    const prompt = `
-      You are a caring wellness coach inside the Mode Mentor app.
-      The user's detected emotion right now: ${emotionLabel || 'Unknown'}
-      Current wellness score: ${wellnessScore ?? 'unknown'}/100
-      ${trendLine}
-
-      Write ONE short, warm, actionable suggestion tailored to this person.
-      Rules: max 220 characters, reference their history ONLY if relevant,
-      suggest one concrete thing they can do in the next hour.
-      Respond with pure JSON (no markdown): {"text": "...", "category": "one of breathing|mindfulness|motivational|habit_reinforcement|cooldown|general|personalised"}
-    `;
-
-    const response = await ai.models.generateContent({
-      model: GEMINI_MODEL,
-      contents: prompt,
-      config: { responseMimeType: 'application/json', temperature: 0.9 },
-    });
-
-    const parsed = JSON.parse(response.text);
-    if (!parsed || typeof parsed.text !== 'string' || !parsed.text.trim()) return null;
-
-    const category = RECOMMENDATION_CATEGORIES.includes(parsed.category)
-      ? parsed.category
-      : 'personalised';
-
-    return { text: parsed.text.trim(), category, source: 'gemini' };
-  } catch (err) {
-    console.error('[Gemini] Personalised recommendation failed:', err.message);
-    return null;
-  }
-}
-
-/** Resolve with fallbackValue if promise takes longer than ms. */
-function withTimeout(promise, ms, fallbackValue = null) {
-  let timer;
-  const timeout = new Promise((resolve) => {
-    timer = setTimeout(() => resolve(fallbackValue), ms);
-  });
-  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+async function chatBuddy(messages, context) {
+  return buddyChat.chatBuddy(messages, context);
 }
 
 // ── Fallback Mocks (if no API key provided) ──
@@ -215,27 +136,8 @@ function mockAnalyzeCheckin(text, userEmotion) {
   };
 }
 
-function mockChatBuddy(messages, userEmotion) {
-  const lastMsg = messages[messages.length - 1].content.toLowerCase();
-  
-  if (lastMsg.includes('song') || lastMsg.includes('music')) {
-    if (userEmotion === 'Happy') return "Try 'Walking on Sunshine' or upbeat Lo-Fi! 🎶";
-    if (userEmotion === 'Sad' || userEmotion === 'Stressed') return "I recommend some calm acoustic guitar or cinematic ambient tracks to relax your mind. 🎧";
-    return "How about some chill synthwave to vibe to? 📻";
-  }
-  if (lastMsg.includes('game') || lastMsg.includes('play')) {
-    return "A cozy game like Stardew Valley or Animal Crossing is perfect for winding down. Or if you want action, maybe a quick match in Rocket League? 🎮";
-  }
-  if (lastMsg.includes('hang') || lastMsg.includes('plan')) {
-    return "How about grabbing a coffee with a friend, or going for a walk in a local park? Nature is a great reset! 🌳☕";
-  }
-  
-  return `I hear you 💚 Let's take this one step at a time — try a slow 5-minute breather: inhale for 4, hold for 2, exhale for 6. I'm here if you want music, game or hangout ideas too!`;
-}
-
 module.exports = {
   analyzeCheckin,
-  chatBuddy,
-  personalizedRecommendation,
-  withTimeout,
+  chatBuddy
 };
+

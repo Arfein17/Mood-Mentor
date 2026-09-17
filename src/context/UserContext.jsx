@@ -43,7 +43,7 @@ export function UserProvider({ children }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, login, logout, points, setPoints, refreshPoints }}>
+    <UserContext.Provider value={{ user, login, logout, points, setPoints, refreshPoints, refreshUser: refreshPoints }}>
       {children}
     </UserContext.Provider>
   );

@@ -10,18 +10,15 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import RewardsPage from './pages/RewardsPage';
 import ProgressPage from './pages/ProgressPage';
+import ProfilePage from './pages/Profile';
 import heroBg from './assets/hero_bg.png';
 import { useUser } from './context/UserContext';
-import BuddyWidget from './components/BuddyWidget';
 
 function App() {
-  const { user, logout, refreshPoints } = useUser();
-  const [currentScreen, setCurrentScreen] = useState(() => {
-    if (!user) return 'landing';
-    return user.role === 'admin' ? 'admin' : 'dashboard';
-  });
+  const [currentScreen, setCurrentScreen] = useState('landing');
   const [wellnessResult, setWellnessResult] = useState(null);
   const [checkinContext, setCheckinContext] = useState({ text: '', emotion: null });
+  const { user, logout, refreshPoints } = useUser();
 
   const handleLogout = () => {
     logout();
@@ -170,18 +167,21 @@ function App() {
             onStartCheckin={() => setCurrentScreen('checkin')}
             onOpenRewards={() => setCurrentScreen('rewards')}
             onOpenProgress={() => setCurrentScreen('progress')}
+            onOpenProfile={() => setCurrentScreen('profile')}
           />
         )}
         {currentScreen === 'progress' && (
           <ProgressPage
             onBack={() => setCurrentScreen('dashboard')}
             onLogout={handleLogout}
+            onOpenProfile={() => setCurrentScreen('profile')}
           />
         )}
         {currentScreen === 'rewards' && (
           <RewardsPage
             onBack={() => setCurrentScreen('dashboard')}
             onLogout={handleLogout}
+            onOpenProfile={() => setCurrentScreen('profile')}
           />
         )}
         {currentScreen === 'checkin' && (
@@ -217,16 +217,14 @@ function App() {
         )}
         {currentScreen === 'admin' && (
           <AdminDashboard
-            onBack={() => setCurrentScreen('landing')}
+            onBack={() => setCurrentScreen(user ? 'dashboard' : 'landing')}
             onLogout={handleLogout}
           />
         )}
+        {currentScreen === 'profile' && (
+          <ProfilePage onBack={() => setCurrentScreen('dashboard')} />
+        )}
       </div>
-
-      {/* Global Wellness Buddy — on every logged-in screen */}
-      {user && !['landing', 'auth', 'admin-login', 'admin'].includes(currentScreen) && (
-        <BuddyWidget />
-      )}
     </div>
   );
 }

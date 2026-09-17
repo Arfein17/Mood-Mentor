@@ -1,0 +1,718 @@
+/* Games Box Menu */
+.games-box-card {
+  grid-column: 1 / -1; /* Make it span full width if inside grid, or full width of container */
+  margin-top: 24px;
+}
+
+/* Feedback Banner */
+.game-feedback-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.game-feedback-banner.cap-banner {
+  background: rgba(255, 183, 77, 0.15);
+  border: 1px solid rgba(255, 183, 77, 0.4);
+  color: #ffb74d;
+}
+
+.game-feedback-banner.success-banner {
+  background: rgba(129, 199, 132, 0.15);
+  border: 1px solid rgba(129, 199, 132, 0.4);
+  color: #81c784;
+}
+
+.card-badge.cap-badge {
+  background: rgba(255, 183, 77, 0.2);
+  color: #ffb74d;
+  border: 1px solid rgba(255, 183, 77, 0.3);
+}
+
+.games-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.game-menu-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.game-menu-item:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  border-color: var(--color-primary);
+}
+
+.game-menu-icon {
+  color: var(--color-gold);
+  margin-bottom: 12px;
+}
+
+.game-menu-item h4 {
+  font-family: var(--font-heading);
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.game-menu-item p {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+}
+
+.back-to-games-btn {
+  background: none;
+  border: none;
+  color: var(--color-sage);
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 20px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+}
+
+.back-to-games-btn:hover {
+  color: #ffffff;
+  transform: translateX(-2px);
+}
+
+.game-render-area {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  min-height: 440px;
+  position: relative;
+  overflow: hidden;
+}
+
+.game-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.game-header h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  color: var(--color-gold);
+}
+
+.game-header p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+}
+
+.game-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.game-start-btn {
+  display: block;
+  margin: 0 auto;
+  background: linear-gradient(135deg, var(--color-primary), #3f51b5);
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.game-start-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(92, 107, 192, 0.4);
+}
+
+.game-over {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(20, 26, 38, 0.96);
+  backdrop-filter: blur(12px);
+  padding: 32px;
+  border-radius: 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 183, 77, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  min-width: 280px;
+  animation: popIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.game-over h4 {
+  font-size: 1.5rem;
+  color: var(--color-gold);
+  margin-bottom: 10px;
+}
+
+.win-icon-wrapper {
+  margin-bottom: 12px;
+}
+
+.win-trophy {
+  color: var(--color-gold);
+  filter: drop-shadow(0 0 12px rgba(255, 183, 77, 0.5));
+  animation: bounce 1.5s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes popIn {
+  0% { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+/* ===================================================
+   1. Breathing Bubble
+   =================================================== */
+.breathing-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 250px;
+  position: relative;
+}
+
+.breathing-bubble {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(129, 199, 132, 0.2);
+  border: 2px solid var(--color-sage);
+  transition: all 4s ease-in-out;
+  position: absolute;
+}
+
+.breathing-bubble.inhale {
+  transform: scale(1.8);
+  background: rgba(129, 199, 132, 0.4);
+}
+
+.breathing-bubble.hold {
+  transform: scale(1.8);
+  background: rgba(255, 183, 77, 0.4);
+  border-color: var(--color-gold);
+}
+
+.breathing-bubble.exhale {
+  transform: scale(1);
+  background: rgba(129, 199, 132, 0.2);
+}
+
+.breathing-text {
+  z-index: 2;
+  text-align: center;
+}
+
+.breathing-text h2 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.breathing-text p {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.cycle-count {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* ===================================================
+   2. Bubble Pop (Upgraded with Combos & Ripples)
+   =================================================== */
+.bubble-area {
+  position: relative;
+  height: 320px;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.8));
+}
+
+.pop-bubble {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.9), rgba(99, 102, 241, 0.8) 40%, rgba(79, 70, 229, 0.9) 100%);
+  box-shadow: inset -4px -4px 8px rgba(0, 0, 0, 0.2), 0 0 15px rgba(99, 102, 241, 0.4);
+  cursor: pointer;
+  animation: float-up 3.5s ease-in-out infinite alternate;
+  transition: transform 0.1s ease-out;
+  user-select: none;
+}
+
+.pop-bubble:hover {
+  transform: scale(1.08);
+}
+
+.pop-bubble:active {
+  transform: scale(1.25);
+}
+
+.bubble-shine {
+  position: absolute;
+  top: 18%;
+  left: 22%;
+  width: 28%;
+  height: 20%;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  transform: rotate(-30deg);
+}
+
+/* Expanding Pop Ripple */
+.pop-ripple {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  pointer-events: none;
+  transform: translate(-15%, -15%);
+  animation: popRippleAnim 0.45s ease-out forwards;
+}
+
+@keyframes popRippleAnim {
+  0% { transform: scale(0.6); opacity: 1; border-color: rgba(255, 255, 255, 0.9); }
+  100% { transform: scale(1.6); opacity: 0; border-color: rgba(255, 183, 77, 0); }
+}
+
+/* Combo Streak Notifications */
+.combo-badge-stat {
+  background: rgba(255, 112, 67, 0.2) !important;
+  border-color: rgba(255, 112, 67, 0.5) !important;
+  color: #ff7043 !important;
+  animation: pulseCombo 1s infinite alternate;
+}
+
+.active-combo-banner {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(255, 112, 67, 0.85), rgba(255, 167, 38, 0.85));
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 20px rgba(255, 112, 67, 0.4);
+  z-index: 5;
+  animation: bannerPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bannerPop {
+  0% { transform: scale(0.6) translateY(-10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes pulseCombo {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.05); }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-16px); }
+}
+
+/* ===================================================
+   3. Sliding Number Puzzle (New)
+   =================================================== */
+.sliding-puzzle-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sliding-puzzle-controls,
+.memory-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.difficulty-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 3px;
+}
+
+.toggle-pill {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-pill:hover {
+  color: #ffffff;
+}
+
+.toggle-pill.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(92, 107, 192, 0.4);
+}
+
+.puzzle-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.puzzle-reset-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.sliding-puzzle-grid {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  margin: 24px auto 10px;
+  background: rgba(15, 23, 42, 0.5);
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.sliding-tile {
+  aspect-ratio: 1;
+  background: linear-gradient(135deg, rgba(40, 52, 75, 0.9), rgba(28, 36, 52, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, background 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.sliding-tile:hover:not(.empty-tile) {
+  transform: scale(1.02);
+  border-color: rgba(255, 183, 77, 0.6);
+  background: linear-gradient(135deg, rgba(48, 62, 90, 0.95), rgba(32, 42, 60, 0.95));
+}
+
+.sliding-tile:active:not(.empty-tile) {
+  transform: scale(0.97);
+}
+
+.sliding-tile.correct-position {
+  border-color: rgba(129, 199, 132, 0.4);
+  background: linear-gradient(135deg, rgba(35, 55, 50, 0.8), rgba(22, 40, 35, 0.8));
+}
+
+.sliding-tile.empty-tile {
+  background: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.06);
+  box-shadow: none;
+  cursor: default;
+}
+
+.tile-number {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  font-family: var(--font-heading, sans-serif);
+}
+
+/* ===================================================
+   4. Memory Match (Upgraded with Difficulty)
+   =================================================== */
+.memory-grid {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  margin: 20px auto 10px;
+}
+
+.memory-card {
+  aspect-ratio: 1;
+  perspective: 1000px;
+  cursor: pointer;
+}
+
+.memory-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.memory-card.flipped .memory-card-inner,
+.memory-card.solved .memory-card-inner {
+  transform: rotateY(180deg);
+}
+
+.memory-card-front, .memory-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.memory-card-front {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.memory-card-front:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.card-back-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.memory-card-back {
+  background: linear-gradient(135deg, var(--color-primary), #3f51b5);
+  color: white;
+  transform: rotateY(180deg);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 14px rgba(92, 107, 192, 0.4);
+}
+
+.memory-card.solved .memory-card-back {
+  background: linear-gradient(135deg, var(--color-sage), #2e7d32);
+  border-color: rgba(129, 199, 132, 0.5);
+}
+
+/* ===================================================
+   5. Zen Sand Garden (New)
+   =================================================== */
+.zen-sand-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sand-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 600px;
+  margin-top: 14px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rake-selector,
+.sand-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rake-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.75);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rake-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.rake-btn.active {
+  background: rgba(212, 185, 140, 0.2);
+  border-color: rgba(212, 185, 140, 0.6);
+  color: #e5d3b3;
+  font-weight: 600;
+}
+
+.smooth-sand-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #e2e8f0;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.smooth-sand-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.finish-session-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(129, 199, 132, 0.3), rgba(67, 160, 71, 0.4));
+  border: 1px solid rgba(129, 199, 132, 0.5);
+  color: #a5d6a7;
+  padding: 6px 14px;
+  border-radius: 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.finish-session-btn:hover {
+  background: linear-gradient(135deg, rgba(129, 199, 132, 0.45), rgba(67, 160, 71, 0.55));
+  color: #ffffff;
+  transform: scale(1.03);
+}
+
+.finish-session-btn.completed {
+  background: rgba(129, 199, 132, 0.15);
+  border-color: rgba(129, 199, 132, 0.3);
+  color: #81c784;
+  cursor: default;
+  transform: none;
+}
+
+.sand-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  height: 330px;
+  margin: 18px auto 8px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(110, 85, 55, 0.3);
+  border: 2px solid #5a4530;
+}
+
+.sand-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: crosshair;
+}
+
+.sand-canvas-hint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(40, 30, 20, 0.7);
+  backdrop-filter: blur(4px);
+  color: rgba(255, 245, 230, 0.85);
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  border-radius: 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.zen-completed-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 8px 18px;
+  background: rgba(129, 199, 132, 0.15);
+  border: 1px solid rgba(129, 199, 132, 0.4);
+  color: #81c784;
+  border-radius: 20px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  animation: fadeIn 0.4s ease-out;
+}

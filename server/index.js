@@ -17,7 +17,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { requestLogger } = require('./middleware/logging');
-const { rateLimit } = require('./middleware/rateLimiter');
 const checkinRouter = require('./routes/checkin');
 const pointsRouter = require('./routes/points');
 const challengesRouter = require('./routes/challenges');
@@ -39,8 +38,8 @@ const app = express();
 
 app.use(cors({
   origin: [VITE_ORIGIN],
-  methods: ['GET', 'POST'],
-  allowedHeaders: ['Content-Type'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 app.use(express.json({ limit: '2mb' }));
@@ -48,12 +47,14 @@ app.use(express.json({ limit: '2mb' }));
 // Redacting request logger (never logs raw text or image buffers)
 app.use(requestLogger);
 
-// Global API rate limit — 120 requests per minute per client IP
-app.use(rateLimit({ windowMs: 60000, max: 120 }));
-
 const { requireAuth } = require('./middleware/authMiddleware');
 
+const profileRouter = require('./routes/profile');
+const path = require('path');
+
 // ── Routes ──────────────────────────────────────────────────────────────────
+
+app.use('/avatars', express.static(path.join(__dirname, 'public/avatars')));
 
 app.use('/api/checkin', checkinRouter); // checkin handles auth internally for some routes
 app.use('/api/points', requireAuth, pointsRouter);
@@ -64,6 +65,7 @@ app.use('/api/recommendations', requireAuth, recommendationsRouter);
 app.use('/api/auth', authRouter); // auth routes are public
 app.use('/api/chat', requireAuth, chatRouter);
 app.use('/api/buddy', requireAuth, buddyRouter);
+app.use('/api/profile', requireAuth, profileRouter);
 
 // Health check — useful for CI and uptime monitoring
 app.get('/api/health', (req, res) => {
@@ -96,9 +98,14 @@ app.use((err, req, res, next) => {
 
 // Initialize cron jobs
 require('./jobs/cleanupRawText');
+require('./jobs/dailyReminders');
+const { verifyConnection } = require('./services/emailService');
 
 async function start() {
   console.log('[MODE MENTOR] Starting server...');
+
+  // Verify email service configuration (non-blocking)
+  verifyConnection().catch(() => {});
 
   // Pre-warm text classifier (downloads model on first run, or falls back to stub)
   console.log('[MODEL] Loading text emotion classifier...');

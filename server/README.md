@@ -26,6 +26,21 @@ Vite proxies `/api/*` → Express automatically.
 
 ---
 
+## Development Admin Account
+
+For local development and demo purposes, you can use the built-in admin account. 
+To seed this account into your local database, run:
+```bash
+npx sequelize-cli db:seed:all
+```
+This will insert the following default admin credentials:
+- **Admin ID**: `Admin0707`
+- **Password**: `Admin_17`
+
+> **Note**: This account is strictly for local dev/demos. Ensure this seeded account and its credentials are removed or updated with a strong, unique password before deploying to any production environment!
+
+---
+
 ## API Endpoints
 
 | Method | Path | Body | Description |

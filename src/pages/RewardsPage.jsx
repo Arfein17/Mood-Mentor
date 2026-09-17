@@ -16,7 +16,7 @@ const REWARDS = [
   { id: 'half_day',     name: 'Half-Day Friday',      cost: 500, emoji: '🏖️', desc: 'Leave early on Friday — recharge and relax.' },
 ];
 
-const RewardsPage = ({ onBack, onLogout }) => {
+const RewardsPage = ({ onBack, onLogout, onOpenProfile }) => {
   const { user, points, setPoints } = useUser();
   const [badges, setBadges] = useState([]);
   const [recentAwards, setRecentAwards] = useState([]);
@@ -52,8 +52,8 @@ const RewardsPage = ({ onBack, onLogout }) => {
   };
 
   return (
-    <div className="rewards-page">
-      <Navbar showLogout={true} onLogout={onLogout} />
+    <div className="rewards-page fade-in">
+      <Navbar onLogout={onLogout} onOpenProfile={onOpenProfile} showLogout={true} />
 
       <div className="rewards-scroll">
         <div className="rewards-inner">

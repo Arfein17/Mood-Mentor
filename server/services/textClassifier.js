@@ -154,18 +154,6 @@ function stubClassify(text) {
   const sorted = WELLNESS_CLASSES.slice().sort((a,b) => scores[b]-scores[a]);
   return { distribution: scores, topEmotion: sorted[0], confidence: scores[sorted[0]], source: 'text-stub' };
 }
-
-/**
- * Maps 3-class sentiment model outputs (POSITIVE / NEUTRAL / NEGATIVE)
- * onto the 6 wellness classes. Used when the loaded model has no
- * fine-grained emotion labels and no keywords were matched.
- */
-const SENTIMENT_MAP = {
-  positive: { Happy: 0.55, Calm: 0.45 },
-  neutral:  { Calm: 0.60, Happy: 0.20, Anxious: 0.10, Stressed: 0.10 },
-  negative: { Stressed: 0.30, Anxious: 0.25, Frustrated: 0.25, Sad: 0.20 },
-};
-
 // ─────────────────────────────────────────────────────────────────────────────
 
 async function load() {
@@ -184,7 +172,7 @@ async function load() {
 
   _loading = true;
   const CANDIDATES = [
-    process.env.TEXT_MODEL_ID || 'Xenova/twitter-roberta-base-sentiment-latest',
+    process.env.TEXT_MODEL_ID || 'SamLowe/roberta-base-go_emotions',
     'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
   ];
 
@@ -197,7 +185,7 @@ async function load() {
         console.log(`[TextClassifier] Trying model: ${modelId}`);
         _pipeline = await pipeline('text-classification', modelId, {
           topk: null,
-          quantized: true,
+          quantized: false,
         });
         console.log(`[TextClassifier] ✓ Loaded: ${modelId}`);
         _loading = false;
@@ -224,68 +212,43 @@ async function load() {
  * @returns {Promise<ClassificationResult>}
  */
 async function classify(text) {
+  // Stub mode: keyword-based when model unavailable
+  if (_stubMode) return stubClassify(text || '');
+  if (!_pipeline) throw new Error('TextClassifier not loaded. Call load() first.');
+
   if (!text || typeof text !== 'string' || !text.trim()) {
     throw new Error('Text input must be a non-empty string.');
   }
 
+  // Truncate to model max tokens to avoid truncation warnings
   const truncated = text.trim().slice(0, 512);
-  const lower = truncated.toLowerCase();
 
-  // ── 1. Keyword analysis first — precise for common wellness vocabulary ──
-  const scores = Object.fromEntries(WELLNESS_CLASSES.map(c => [c, 0]));
-  let hits = 0;
-  for (const [cls, words] of Object.entries(STUB_KEYWORDS)) {
-    for (const w of words) {
-      if (lower.includes(w)) { scores[cls] += 1; hits += 1; }
-    }
+  /** @type {Array<{label: string, score: number}>} */
+  const rawResults = await _pipeline(truncated);
+
+  // Aggregate into 6 wellness classes
+  const dist = Object.fromEntries(WELLNESS_CLASSES.map(c => [c, 0]));
+
+  for (const { label, score } of rawResults) {
+    const cls = EMOTION_MAP[label.toLowerCase()];
+    if (cls) dist[cls] += score;
   }
 
-  // ── 2. Neural model fallback when no keywords matched ──
-  if (hits === 0 && _pipeline && !_stubMode) {
-    try {
-      /** @type {Array<{label: string, score: number}>} */
-      const rawResults = await _pipeline(truncated);
-      const dist = Object.fromEntries(WELLNESS_CLASSES.map(c => [c, 0]));
-      let mappedTotal = 0;
-
-      for (const { label, score } of rawResults) {
-        const l = label.toLowerCase();
-        let contrib = null;
-        if (EMOTION_MAP[l]) {
-          contrib = { [EMOTION_MAP[l]]: score };
-        } else if (SENTIMENT_MAP[l]) {
-          contrib = SENTIMENT_MAP[l];
-        }
-        if (contrib) {
-          for (const [cls, weight] of Object.entries(contrib)) {
-            dist[cls] += score * weight;
-            mappedTotal += score * weight;
-          }
-        }
-      }
-
-      if (mappedTotal > 0) {
-        for (const cls of WELLNESS_CLASSES) dist[cls] /= mappedTotal;
-        const sorted = WELLNESS_CLASSES.slice().sort((a, b) => dist[b] - dist[a]);
-        return { distribution: dist, topEmotion: sorted[0], confidence: dist[sorted[0]], source: 'text-model' };
-      }
-    } catch (err) {
-      console.warn('[TextClassifier] Neural fallback failed:', err.message);
-    }
+  // Normalise so distribution sums to 1.0
+  const total = Object.values(dist).reduce((a, b) => a + b, 0);
+  if (total > 0) {
+    for (const cls of WELLNESS_CLASSES) dist[cls] = dist[cls] / total;
   }
 
-  // ── 3. Keyword result (or neutral default when nothing matched at all) ──
-  if (hits === 0) scores['Calm'] = 1;
-  const total = Object.values(scores).reduce((a, b) => a + b, 0) || 1;
-  const dist = {};
-  for (const c of WELLNESS_CLASSES) dist[c] = scores[c] / total;
   const sorted = WELLNESS_CLASSES.slice().sort((a, b) => dist[b] - dist[a]);
+  const topEmotion = sorted[0];
+  const confidence = dist[topEmotion];
 
   return {
     distribution: dist,
-    topEmotion: sorted[0],
-    confidence: dist[sorted[0]],
-    source: hits > 0 ? 'text-keywords' : 'text-default',
+    topEmotion,
+    confidence,
+    source: 'text',
   };
 }
 

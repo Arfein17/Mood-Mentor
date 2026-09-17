@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './CheckinResult.css';
 import Button from '../components/Button';
-import { fetchWithAuth } from '../api/client';
 import {
   CheckCircle2, Sparkles, AlertCircle, Signal,
   MessageCircle, Send, X, Bot, Lightbulb,
@@ -86,6 +85,8 @@ const SUGGESTIONS = {
   ],
 };
 
+import BuddyWidget from '../components/BuddyWidget';
+
 /* ═══════════════════════════════════════════════════════════
    Main Component
    ═══════════════════════════════════════════════════════════ */
@@ -155,45 +156,6 @@ const CheckinResult = ({ wellnessResult, checkinContext, onReturnToDashboard }) 
   const rawText = checkinContext?.text || '';
   const suggestions = hasResult ? pickSuggestions(emotion, rawText) : SUGGESTIONS.uncertain;
 
-  const [correctionState, setCorrectionState] = useState('idle');
-  const [recFeedbackState, setRecFeedbackState] = useState('idle');
-
-  const submitCorrection = async (correctedEmotion) => {
-    if (!wellnessResult?.emotionResultId || correctionState === 'saving') return;
-    setCorrectionState('saving');
-    try {
-      const res = await fetchWithAuth('/api/checkin/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          emotionResultId: wellnessResult.emotionResultId,
-          correctedEmotion,
-        }),
-      });
-      if (!res.ok) throw new Error('failed');
-      setCorrectionState('saved');
-    } catch {
-      setCorrectionState('error');
-    }
-  };
-
-  const submitRecommendationFeedback = async (helpful) => {
-    const recId = wellnessResult?.recommendation?.id;
-    if (!recId || recFeedbackState === 'saving') return;
-    setRecFeedbackState('saving');
-    try {
-      const res = await fetchWithAuth(`/api/recommendations/${recId}/feedback`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ helpful }),
-      });
-      if (!res.ok) throw new Error('failed');
-      setRecFeedbackState(helpful ? 'helpful' : 'not-helpful');
-    } catch {
-      setRecFeedbackState('error');
-    }
-  };
-
   return (
     <div className="result-page">
       <div className="result-bg" />
@@ -258,14 +220,6 @@ const CheckinResult = ({ wellnessResult, checkinContext, onReturnToDashboard }) 
               </div>
 
 
-              {/* ── Coach tip (LLM-personalised) ── */}
-              {wellnessResult.recommendation?.text && (
-                <div className="result-coach-tip">
-                  <Sparkles size={14} className="coach-tip-icon" />
-                  <span>{wellnessResult.recommendation.text}</span>
-                </div>
-              )}
-
               {/* ── Personalised Suggestions ── */}
               <div className="result-suggestions">
                 <div className="suggestions-heading">
@@ -288,57 +242,7 @@ const CheckinResult = ({ wellnessResult, checkinContext, onReturnToDashboard }) 
                     );
                   })}
                 </div>
-
-                {/* ── Recommendation feedback ── */}
-                {wellnessResult.recommendation?.id && (
-                  <div className="result-rec-feedback">
-                    {(recFeedbackState === 'idle' || recFeedbackState === 'saving') ? (
-                      <>
-                        <span className="rec-feedback-label">Was the coach tip helpful?</span>
-                        <button className="rec-feedback-btn" onClick={() => submitRecommendationFeedback(true)} disabled={recFeedbackState === 'saving'}>👍</button>
-                        <button className="rec-feedback-btn" onClick={() => submitRecommendationFeedback(false)} disabled={recFeedbackState === 'saving'}>👎</button>
-                      </>
-                    ) : recFeedbackState === 'helpful' ? (
-                      <span className="rec-feedback-done">Glad it helped! 💚</span>
-                    ) : recFeedbackState === 'not-helpful' ? (
-                      <span className="rec-feedback-done">Noted — we'll tune your suggestions.</span>
-                    ) : (
-                      <span className="correction-error">Could not save feedback.</span>
-                    )}
-                  </div>
-                )}
               </div>
-
-              {/* ── Mood correction ── */}
-              {wellnessResult.emotionResultId && correctionState !== 'saved' && (
-                <div className="result-correction">
-                  <span className="correction-label">Not how you felt? Correct it:</span>
-                  <div className="correction-options">
-                    {Object.entries(EMOTION_META)
-                      .filter(([key]) => key !== 'uncertain')
-                      .map(([cls, m]) => (
-                        <button
-                          key={cls}
-                          className={`correction-btn ${emotion === cls ? 'is-detected' : ''}`}
-                          title={cls}
-                          disabled={correctionState === 'saving'}
-                          onClick={() => submitCorrection(cls)}
-                        >
-                          <span className="correction-emoji">{m.emoji}</span>
-                          <span className="correction-name">{cls}</span>
-                        </button>
-                      ))}
-                  </div>
-                  {correctionState === 'error' && (
-                    <span className="correction-error">Could not save — please try again.</span>
-                  )}
-                </div>
-              )}
-              {correctionState === 'saved' && (
-                <div className="result-correction">
-                  <span className="correction-done">✓ Thanks! Your correction helps improve mood detection.</span>
-                </div>
-              )}
 
               {/* ── Disclaimer ── */}
               <div className="result-disclaimer">
@@ -366,6 +270,11 @@ const CheckinResult = ({ wellnessResult, checkinContext, onReturnToDashboard }) 
             </Button>
             <p className="result-note">Keep checking in daily to build your wellness journey 🌿</p>
           </div>
+
+          <BuddyWidget 
+            emotion={emotion} 
+            wellnessScore={wellnessResult.wellnessScore} 
+          />
         </div>
       </div>
     </div>

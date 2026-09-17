@@ -1,17 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import './Navbar.css';
-import { Compass, LogOut, Award } from 'lucide-react';
+import { Compass, LogOut, Award, ArrowLeft } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { fetchPoints } from '../api/client';
+import ProfileIcon from './ProfileIcon';
 
-const Navbar = ({ onLogout, showLogout = false }) => {
+const Navbar = ({ onLogout, onOpenProfile, showLogout = false, onBack, showBack = false }) => {
   const { user, points } = useUser();
 
   return (
     <nav className="glass-navbar">
-      <div className="navbar-brand">
-        <Compass className="navbar-icon" />
-        <span className="navbar-title">Mode Mentor</span>
+      <div className="navbar-left">
+        <div className="navbar-brand">
+          {user && <ProfileIcon onOpenProfile={onOpenProfile} />}
+          <Compass className="navbar-icon" />
+          <span className="navbar-title">Mode Mentor</span>
+        </div>
+        {showBack && onBack && (
+          <button className="navbar-back-btn" onClick={onBack} title="Back to App" type="button">
+            <ArrowLeft size={16} />
+            <span>Back</span>
+          </button>
+        )}
       </div>
       <div className="navbar-tagline">
         Empowering Wellness • Inspiring Productivity
